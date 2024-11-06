@@ -120,12 +120,12 @@ public:
 
         cout << "\nEnter Patient ID: ";
         cin >> id;
-        cin.ignore();  // Clear newline
+        cin.ignore();
         cout << "Enter Name: ";
         getline(cin, name);
         cout << "Enter Age: ";
         cin >> age;
-        cin.ignore();  // Clear newline
+        cin.ignore()
         cout << "Enter Illness or Symptom: ";
         getline(cin, illness);
 
@@ -143,7 +143,7 @@ public:
 
         cout << "\nEnter Doctor ID: ";
         cin >> id;
-        cin.ignore();  // Clear newline
+        cin.ignore()
         cout << "Enter Name: ";
         getline(cin, name);
         cout << "Enter Specialty: ";
@@ -165,7 +165,7 @@ public:
         cin >> appID;
         cout << "Enter Patient ID: ";
         cin >> pID;
-        cin.ignore();  // Clear newline
+        cin.ignore();
         cout << "Enter Patient Symptom: ";
         getline(cin, symptom);
 
