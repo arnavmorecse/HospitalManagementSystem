@@ -1,5 +1,8 @@
 #include <iostream>
 #include <string>
+#include <limits> 
+#include <cctype>
+#include <regex>
 
 using namespace std;
 
@@ -24,6 +27,46 @@ public:
 
     virtual ~Person() {} // destructor
 };
+
+// Helper function to validate integer input
+int getValidatedIntegerInput(const string& prompt) {
+    int value;
+    while (true) {
+        cout << prompt;
+        cin >> value;
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a valid integer.\n";
+            cin.clear(); // Clear error state
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+        } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return value;
+        }
+    }
+}
+
+// Helper function to validate string input
+string getValidatedStringInput(const string& prompt) {
+    string input;
+    while (true) {
+        cout << prompt;
+        getline(cin, input);
+
+        bool isValid = true;
+        for (char c : input) {
+            if (!isalpha(c) && !isspace(c)) {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid && !input.empty()) {
+            return input;
+        } else {
+            cout << "Invalid input. Please enter alphabetic characters only.\n";
+        }
+    }
+}
 
 // Patient class inheriting from Person
 class Patient : public Person {
@@ -115,19 +158,10 @@ public:
             cout << "\nPatient limit reached. Cannot add more patients.\n";
             return;
         }
-        int id, age;
-        string name, illness;
-
-        cout << "\nEnter Patient ID: ";
-        cin >> id;
-        cin.ignore();
-        cout << "Enter Name: ";
-        getline(cin, name);
-        cout << "Enter Age: ";
-        cin >> age;
-        cin.ignore()
-        cout << "Enter Illness or Symptom: ";
-        getline(cin, illness);
+        int id = getValidatedIntegerInput("\nEnter Patient ID: ");
+        string name = getValidatedStringInput("Enter Name: ");
+        int age = getValidatedIntegerInput("Enter Age: ");
+        string illness = getValidatedStringInput("Enter Illness or Symptom: ");
 
         patients[patientCount++] = Patient(id, name, age, illness);
         cout << "\nPatient added successfully.\n";
@@ -138,19 +172,22 @@ public:
             cout << "Doctor limit reached. Cannot add more doctors.\n";
             return;
         }
-        int id;
-        string name, specialty;
-
-        cout << "\nEnter Doctor ID: ";
-        cin >> id;
-        cin.ignore()
-        cout << "Enter Name: ";
-        getline(cin, name);
-        cout << "Enter Specialty: ";
-        getline(cin, specialty);
+        int id = getValidatedIntegerInput("\nEnter Doctor ID: ");
+        string name = getValidatedStringInput("Enter Name: ");
+        string specialty = getValidatedStringInput("Enter Specialty: ");
 
         doctors[doctorCount++] = Doctor(id, name, specialty);
         cout << "\nDoctor added successfully.\n";
+    }
+
+    bool isValidDateFormat(const string& date) {
+        regex datePattern(R"(^\d{2}-\d{2}-\d{4}$)");
+        return regex_match(date, datePattern);
+    }
+    
+    bool isValidTimeFormat(const string& time) {
+        regex timePattern(R"(^([01]\d|2[0-3]):([0-5]\d)$)");
+        return regex_match(time, timePattern);
     }
 
     void scheduleAppointment() {
@@ -158,16 +195,9 @@ public:
             cout << "\nAppointment limit reached. Cannot schedule more appointments.\n";
             return;
         }
-        int pID, appID;
-        string date, time, symptom;
-
-        cout << "\nEnter Appointment ID: ";
-        cin >> appID;
-        cout << "Enter Patient ID: ";
-        cin >> pID;
-        cin.ignore();
-        cout << "Enter Patient Symptom: ";
-        getline(cin, symptom);
+        int appID = getValidatedIntegerInput("\nEnter Appointment ID: ");
+        int pID = getValidatedIntegerInput("Enter Patient ID: ");
+        string symptom = getValidatedStringInput("Enter Patient Symptom: ");
 
         string specialty = findSpecialty(symptom);
         int doctorID = findDoctorBySpecialty(specialty);
@@ -177,10 +207,27 @@ public:
             return;
         }
 
-        cout << "Enter Date (DD-MM-YYYY): ";
-        getline(cin, date);
-        cout << "Enter Time (HH:MM): ";
-        getline(cin, time);
+        string date;
+        while (true) {
+            cout<<"Enter Date (DD-MM-YYYY): ";
+            cin>>date;
+            if (isValidDateFormat(date)) {
+                break;
+            } else {
+                cout << "Invalid date format. Please enter the date in DD-MM-YYYY format.\n";
+            }
+        }
+
+        string time;
+        while (true) {
+            cout<<"Enter Time (HH:MM): ";
+            cin>>time;
+            if (isValidTimeFormat(time)) {
+                break;
+            } else {
+                cout << "Invalid time format. Please enter the time in HH:MM format.\n";
+            }
+        }
 
         appointments[appointmentCount++] = Appointment(appID, pID, doctorID, date, time);
         cout << "\nAppointment scheduled successfully with Doctor ID " << doctorID << ".\n";
@@ -209,6 +256,75 @@ public:
             }
         }
         return -1;
+    }
+
+    void deletePatient() {
+        int id = getValidatedIntegerInput("\nEnter Patient ID to delete: ");
+        int index = -1;
+        for (int i = 0; i < patientCount; i++) {
+            if (patients[i].getPatientID() == id) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1) {
+            cout << "\nPatient with ID " << id << " not found.\n";
+            return;
+        }
+
+        for (int i = index; i < patientCount - 1; i++) {
+            patients[i] = patients[i + 1];
+        }
+
+        patientCount--;
+        cout << "\nPatient with ID " << id << " deleted successfully.\n";
+    }
+
+    void deleteDoctor() {
+        int id = getValidatedIntegerInput("\nEnter Doctor ID to delete: ");
+        int index = -1;
+        for (int i = 0; i < doctorCount; i++) {
+            if (doctors[i].getDoctorID() == id) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1) {
+            cout << "\nDoctor with ID " << id << " not found.\n";
+            return;
+        }
+
+        for (int i = index; i < doctorCount - 1; i++) {
+            doctors[i] = doctors[i + 1];
+        }
+
+        doctorCount--;
+        cout << "\nDoctor with ID " << id << " deleted successfully.\n";
+    }
+
+    void cancelAppointment() {
+        int id = getValidatedIntegerInput("\nEnter Appointment ID to cancel: ");
+        int index = -1;
+        for (int i = 0; i < appointmentCount; i++) {
+            if (appointments[i].getAppointmentID() == id) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1) {
+            cout << "\nAppointment with ID " << id << " not found.\n";
+            return;
+        }
+
+        for (int i = index; i < appointmentCount - 1; i++) {
+            appointments[i] = appointments[i + 1];
+        }
+
+        appointmentCount--;
+        cout << "\nAppointment with ID " << id << " canceled successfully.\n";
     }
 
     void displayPatients() const {
@@ -258,10 +374,12 @@ int main() {
         cout << "4. Display Patients\n";
         cout << "5. Display Doctors\n";
         cout << "6. Display Appointments\n";
+        cout << "7. Delete Patient\n";
+        cout << "8. Delete Doctor\n";
+        cout << "9. Cancel Appointment\n";
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
-        cin >> choice;
-        cin.ignore();
+        choice = getValidatedIntegerInput("");
 
         switch (choice) {
             case 1:
@@ -281,6 +399,15 @@ int main() {
                 break;
             case 6:
                 hms.displayAppointments();
+                break;
+            case 7:
+                hms.deletePatient();
+                break;
+            case 8:
+                hms.deleteDoctor();
+                break;
+            case 9:
+                hms.cancelAppointment();
                 break;
             case 0:
                 cout << "\nExiting the system. Goodbye!\n";
